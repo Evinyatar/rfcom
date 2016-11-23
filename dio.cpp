@@ -67,6 +67,14 @@ void send_dio(int address, char * arguments) {
     data_dio data;
     EEPROM.get(address, data);
     bool state = strcmp(arguments, "on") == 0;
+
+    Serial.print("Interruptor: ");
+    Serial.println(data.interruptor);
+    Serial.print("Sender: ");
+    Serial.println(data.sender);
+    Serial.print("State: ");
+    Serial.println(state ? "On" : "Off");     
+    
     for (int i = 0; i < 5; i++) {
         transmit(data.sender, data.interruptor, state);
         delay(10);
@@ -75,9 +83,11 @@ void send_dio(int address, char * arguments) {
 
 bool write_config_dio(int address, char * arguments) {
     data_dio newData;
-    newData.interruptor = atoi(strtok(arguments,','));
-    newData.sender = atoi(strtok(NULL, ','));
-    if(strtok(NULL, ',')) {
+    char* interruptor = strtok(arguments, ",");
+    char* sender = strtok(NULL, ",");
+    newData.interruptor = atoi(interruptor);
+    newData.sender = atol(sender);
+    if(strtok(NULL, ",")) {
         error("Too many arguments: Expected <interruptor>,<sender>");
         return false;
     }
@@ -91,6 +101,6 @@ char * read_config_dio(int address) {
     char out[20];
     data_dio data;
     EEPROM.get(address, data);
-    sprintf(out, "%d,%d", data.interruptor, data.sender);
+    sprintf(out, "%d,%ld", data.interruptor, data.sender);
     return out;
 }

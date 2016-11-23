@@ -17,6 +17,8 @@ typedef char* (*ReadConfig)(int address);
 struct Protocol {
     ProtocolId protocol;
     char* description;
+    char* configDescription;
+    char* commandDescription;
     int dataSize;
     Send send;
     WriteConfig writeConfig;
@@ -35,6 +37,8 @@ const Protocol PROTOCOLS[] = {
         {
                 DIO_PROTOCOL,
                 "Chacon Dio",
+                "<interruptor>,<sender>",
+                "[on|off]",
                 sizeof(data_dio),
                 send_dio,
                 write_config_dio,
@@ -43,6 +47,8 @@ const Protocol PROTOCOLS[] = {
         {
                 SOMFY_PROTOCOL,
                 "Somfy",
+                "<address>,<rolling code>",
+                "[up|down|stop|my]",
                 sizeof(data_somfy),
                 send_somfy,
                 write_config_somfy,
