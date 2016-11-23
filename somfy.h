@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
 struct data_somfy {
-    unsigned int address;
-    unsigned short rollingCode;
+    uint32_t address;
+    uint16_t rollingCode;
 };
 
 void send_somfy(int address, char * arguments);

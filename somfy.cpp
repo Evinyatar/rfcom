@@ -167,12 +167,15 @@ void send_somfy(int address, char* arguments) {
     }
 
     // store updated rolling code into EEPROM
-    EEPROM.update(address + offsetof(struct data_somfy, rollingCode), data.rollingCode);
+    EEPROM.update(address + offsetof(struct data_somfy, rollingCode), data.rollingCode + 1);
 }
 
 bool write_config_somfy(int address, char* arguments) {
     data_somfy newData;
-    newData.address = atoi(strtok(arguments, ","));
+    char* addressStr = strtok(arguments, ",");
+    Serial.println(addressStr);
+    newData.address = atol(addressStr);
+    Serial.println(newData.address);
     newData.rollingCode = atoi(strtok(NULL, ","));
     if(strtok(NULL, ",") != NULL) {
         error("Expected <address>,<rollingCode>");
@@ -184,7 +187,9 @@ bool write_config_somfy(int address, char* arguments) {
 }
 
 char * read_config_somfy(int address) {
+    char out[20];
     data_somfy data;
     EEPROM.get(address, data);
-    return sprintf("%d,%d", data.address, data.rollingCode);
+    sprintf(out, "%ld,%d", data.address, data.rollingCode);
+    return out;
 }

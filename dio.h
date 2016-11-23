@@ -2,7 +2,7 @@
 
 struct data_dio {
     uint8_t interruptor;
-    unsigned long sender;
+    uint32_t sender;
 };
 
 void send_dio(int address, char * arguments);

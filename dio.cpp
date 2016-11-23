@@ -88,7 +88,9 @@ bool write_config_dio(int address, char * arguments) {
 }
 
 char * read_config_dio(int address) {
+    char out[20];
     data_dio data;
     EEPROM.get(address, data);
-    return sprintf("%d,%d", data.interruptor, data.sender);
+    sprintf(out, "%d,%d", data.interruptor, data.sender);
+    return out;
 }
