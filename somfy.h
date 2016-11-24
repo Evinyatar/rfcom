@@ -5,6 +5,6 @@ struct data_somfy {
     uint16_t rollingCode;
 };
 
-void send_somfy(int address, char * arguments);
+bool send_somfy(int address, char * arguments);
 bool write_config_somfy(int address, char * arguments);
-char * read_config_somfy(int address);
+int  read_config_somfy(int address, char * buffer);

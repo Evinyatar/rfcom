@@ -10,9 +10,9 @@ enum ProtocolId {
     MAX_PROTOCOL
 };
 
-typedef void (*Send)(int address, char* arguments);
+typedef bool (*Send)(int address, char* arguments);
 typedef bool (*WriteConfig)(int address, char* arguments);
-typedef char* (*ReadConfig)(int address);
+typedef int  (*ReadConfig)(int address, char* buffer);
 
 struct Protocol {
     ProtocolId protocol;

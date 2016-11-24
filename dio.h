@@ -5,6 +5,6 @@ struct data_dio {
     uint32_t sender;
 };
 
-void send_dio(int address, char * arguments);
+bool send_dio(int address, char * arguments);
 bool write_config_dio(int address, char * arguments);
-char * read_config_dio(int address);
+int  read_config_dio(int address, char * buffer);

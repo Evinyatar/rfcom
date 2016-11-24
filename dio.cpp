@@ -63,22 +63,16 @@ void transmit(unsigned long sender, uint8_t interruptor, int blnOn) {
     digitalWrite(TX_PORT, LOW);    // lock - end of signal
 }
 
-void send_dio(int address, char * arguments) {
+bool send_dio(int address, char * arguments) {
     data_dio data;
     EEPROM.get(address, data);
     bool state = strcmp(arguments, "on") == 0;
-
-    Serial.print("Interruptor: ");
-    Serial.println(data.interruptor);
-    Serial.print("Sender: ");
-    Serial.println(data.sender);
-    Serial.print("State: ");
-    Serial.println(state ? "On" : "Off");     
     
     for (int i = 0; i < 5; i++) {
         transmit(data.sender, data.interruptor, state);
         delay(10);
     }
+    return true;
 }
 
 bool write_config_dio(int address, char * arguments) {
@@ -97,10 +91,8 @@ bool write_config_dio(int address, char * arguments) {
     return true;
 }
 
-char * read_config_dio(int address) {
-    char out[20];
+int read_config_dio(int address, char* buffer) {
     data_dio data;
     EEPROM.get(address, data);
-    sprintf(out, "%d,%ld", data.interruptor, data.sender);
-    return out;
+    return sprintf(buffer, "%d,%ld", data.interruptor, data.sender);
 }

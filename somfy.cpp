@@ -43,6 +43,7 @@ void BuildFrame(byte *frame, data_somfy *data, byte button) {
     frame[5] = data->address >>  8; // Remote address
     frame[6] = data->address;       // Remote address
 
+    /*
     Serial.print("Frame         : ");
     for(byte i = 0; i < 7; i++) {
         if(frame[i] >> 4 == 0) { //  Displays leading zero in case the most significant
@@ -50,6 +51,7 @@ void BuildFrame(byte *frame, data_somfy *data, byte button) {
         }
         Serial.print(frame[i],HEX); Serial.print(" ");
     }
+    */
 
 // Checksum calculation: a XOR of all the nibbles
     checksum = 0;
@@ -62,7 +64,7 @@ void BuildFrame(byte *frame, data_somfy *data, byte button) {
 //Checksum integration
     frame[1] |= checksum; //  If a XOR of all the nibbles is equal to 0, the blinds will
     // consider the checksum ok.
-
+    /*
     Serial.println(""); Serial.print("With checksum : ");
     for(byte i = 0; i < 7; i++) {
         if(frame[i] >> 4 == 0) {
@@ -70,13 +72,14 @@ void BuildFrame(byte *frame, data_somfy *data, byte button) {
         }
         Serial.print(frame[i],HEX); Serial.print(" ");
     }
+    */
 
-
-// Obfuscation: a XOR of all the bytes
+    // Obfuscation: a XOR of all the bytes
     for(byte i = 1; i < 7; i++) {
         frame[i] ^= frame[i-1];
     }
 
+    /*
     Serial.println(""); Serial.print("Obfuscated    : ");
     for(byte i = 0; i < 7; i++) {
         if(frame[i] >> 4 == 0) {
@@ -84,9 +87,9 @@ void BuildFrame(byte *frame, data_somfy *data, byte button) {
         }
         Serial.print(frame[i],HEX); Serial.print(" ");
     }
-    Serial.println("");
-    Serial.print("Rolling Code  : "); Serial.println(code);
-
+    debug("Rolling Code  : " + String(code));
+    */
+    
     data->rollingCode = code++; //  We store the value of the rolling code in the
     // EEPROM. It should take up to 2 adresses but the
     // Arduino function takes care of it.
@@ -99,56 +102,47 @@ void SendCommand(byte *frame, byte sync) {
         digitalWrite(PORT_TX, HIGH);
         delayMicroseconds(9415);
         digitalWrite(PORT_TX, LOW);
-//    PORTD &= !(1<<PORT_TX);
         delayMicroseconds(89565);
     }
 
-// Hardware sync: two sync for the first frame, seven for the following ones.
+    // Hardware sync: two sync for the first frame, seven for the following ones.
     for (int i = 0; i < sync; i++) {
-//    PORTD |= 1<<PORT_TX;
         digitalWrite(PORT_TX, HIGH);
         delayMicroseconds(4*SYMBOL);
-//    PORTD &= !(1<<PORT_TX);
         digitalWrite(PORT_TX, LOW);
         delayMicroseconds(4*SYMBOL);
     }
 
-// Software sync
+    // Software sync
     digitalWrite(PORT_TX, HIGH);
     delayMicroseconds(4550);
     digitalWrite(PORT_TX, LOW);
     delayMicroseconds(SYMBOL);
 
 
-//Data: bits are sent one by one, starting with the MSB.
+    //Data: bits are sent one by one, starting with the MSB.
     for(byte i = 0; i < 56; i++) {
         if(((frame[i/8] >> (7 - (i%8))) & 1) == 1) {
-//      PORTD &= !(1<<PORT_TX);
             digitalWrite(PORT_TX, LOW);
             delayMicroseconds(SYMBOL);
-//      PORTD ^= 1<<5;
 
             digitalWrite(PORT_TX, HIGH);
             delayMicroseconds(SYMBOL);
         }
         else {
-//      PORTD |= (1<<PORT_TX);
-
             digitalWrite(PORT_TX, HIGH);
             delayMicroseconds(SYMBOL);
-//      PORTD ^= 1<<5;
 
             digitalWrite(PORT_TX, LOW);
             delayMicroseconds(SYMBOL);
         }
     }
 
-//  PORTD &= !(1<<PORT_TX);
     digitalWrite(PORT_TX, LOW);
     delayMicroseconds(30415); // Inter-frame silence
 }
 
-void send_somfy(int address, char* arguments) {
+bool send_somfy(int address, char* arguments) {
     data_somfy data;
     EEPROM.get(address, data);
 
@@ -168,6 +162,7 @@ void send_somfy(int address, char* arguments) {
 
     // store updated rolling code into EEPROM
     EEPROM.update(address + offsetof(struct data_somfy, rollingCode), data.rollingCode + 1);
+    return true;
 }
 
 bool write_config_somfy(int address, char* arguments) {
@@ -186,10 +181,8 @@ bool write_config_somfy(int address, char* arguments) {
     return true;
 }
 
-char * read_config_somfy(int address) {
-    char out[20];
+int read_config_somfy(int address, char* buffer) {
     data_somfy data;
     EEPROM.get(address, data);
-    sprintf(out, "%ld,%d", data.address, data.rollingCode);
-    return out;
+    return sprintf(buffer, "%ld,%d", data.address, data.rollingCode);
 }

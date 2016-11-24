@@ -17,6 +17,8 @@ void setup() {
 
 char* argv[10];
 
+bool json = false;
+
 void loop() {
     if(Serial.available() > 0) {
         char chars[100];
@@ -47,6 +49,16 @@ void loop() {
             log("    Change existing device configuration");
             log(" send <id> <arguments>");
             log("    Send command");
+            log(" json");
+            log("    Switch output to json");
+            log(" text");
+            log("    Switch output to text. Enables some debug logging.");
+        } else if(strcmp(argv[0], "json") == 0) {
+            json = true;
+            success("Output switched to json");
+        } else if(strcmp(argv[0], "text") == 0) {
+            json = false;
+            success("Output switched to text");
         } else if(strcmp(argv[0], "add_device") == 0) {
             if(argc != 4) {
                 error("Usage: add_device <id> <protocol_id> <arguments>");
@@ -70,30 +82,57 @@ void loop() {
             }
 
             if(addDevice(id, protocolId, argv[3])) {
-                Serial.println("Success");
-            } else {
-                Serial.println("Failed");
+                success("Device added");
             }
 
         } else if(strcmp(argv[0], "list_devices") == 0) {
-            Serial.println("Listing devices:");
+            bool first = true;
+            
             DeviceSearch context;
             if(!startSearch(&context)) {
                 return;
             }
-            Serial.print("Number of devices: "); Serial.println(context.deviceCount);
+
+            if(json) {
+                Serial.print("[");
+            } else {
+                Serial.println("Listing devices:");
+                Serial.print("Number of devices: "); Serial.println(context.deviceCount);
+            }
+
             while(nextDevice(&context)) {
-                Serial.println("Index: " + String(context.index));
-                Serial.println("EEPROM Offset: " + String(context.device.address));
-                Serial.println("Device Id: " + String(context.device.id));
-                Serial.println("Protocol: " + String(context.device.protocolId) + " - " + context.device.protoSpec->description);
-                Serial.print("Configuration: ");
-                Serial.println(context.device.protoSpec->readConfig(context.device.address));
-                Serial.println("================================================================");
+                if(json && !first) {
+                    Serial.print(",");
+                }
+                
+                first = false;
+
+                char buffer[20];
+                int configSize = context.device.protoSpec->readConfig(context.device.address, buffer);
+                buffer[configSize] = 0;
+                
+                if(json) {
+                    Serial.print("{\"id\":" + String(context.device.id) + ",");
+                    Serial.print("\"protocolId\":" + String(context.device.protocolId) + ",");
+                    Serial.print("\"protocol\":\"" + String(context.device.protoSpec->description) + "\",");
+                    Serial.print("\"configuration\":\""); Serial.print(buffer); Serial.print("\"}");
+                } else {
+                    Serial.println("Index: " + String(context.index));
+                    Serial.println("EEPROM Offset: " + String(context.device.address));
+                    Serial.println("Device Id: " + String(context.device.id));
+                    Serial.println("Protocol: " + String(context.device.protocolId) + " - " + context.device.protoSpec->description);
+                    Serial.print("Configuration: ");
+                    Serial.println(buffer);
+                    Serial.println("================================================================");
+                }
+            }
+
+            if(json) {
+                Serial.println("]");
             }
         } else if(strcmp(argv[0], "initialize") == 0) {
-            Serial.println("Erasing");
             initialize();
+            success("Erased");
         } else if(strcmp(argv[0], "config") == 0) {
             if(argc != 3) {
                 error("Usage: config <id> <configuration>");
@@ -113,7 +152,9 @@ void loop() {
                 return;
             }
 
-            device->protoSpec->writeConfig(device->address, argv[2]);
+            if(device->protoSpec->writeConfig(device->address, argv[2])) {
+                success("Config written");
+            }
         } else if(strcmp(argv[0], "send") == 0) {
             if(argc != 3) {
                 error("Usage: send <id> <arguments>");
@@ -133,16 +174,34 @@ void loop() {
                 return;
             }
 
-            device->protoSpec->send(device->address, argv[2]);
+            if(device->protoSpec->send(device->address, argv[2])) {
+                success("Send complete");
+            }
         } else {
-            Serial.print("Unknown command ");
-            Serial.println(argv[0]);
+            error("Unknown command");
         }
     }
 }
 
 void error(String text) {
-    Serial.println(text);
+    if(json) {
+        Serial.print("{\"success\":false,\"error\":\"");
+        Serial.print(text);
+        Serial.println("\"}");
+    } else {
+        Serial.println(text);
+    }
+}
+
+void success(String text) {
+    if(json) {
+        Serial.print("{\"success\":true,\"message\":\"");
+        Serial.print(text);
+        Serial.println("\"}");
+    } else {
+        Serial.print("Error: ");
+        Serial.println(text);
+    }
 }
 
 void output(String text) {

@@ -1,4 +1,5 @@
 #include <EEPROM.h>
+#include "common.h"
 #include "configstore.h"
 
 /**
@@ -9,8 +10,7 @@ bool startSearch(DeviceSearch * context) {
     int version = EEPROM.read(offset++);
 
     if(EEPROM_VERSION != version) {
-        Serial.println("EEPROM version number mismatch.");
-        Serial.print("Expected "); Serial.print(EEPROM_VERSION); Serial.print(" got "); Serial.println(version);
+        error("EEPROM version number mismatch.");
         return false;
     }
     byte numberOfDevices = EEPROM.read(offset++);
