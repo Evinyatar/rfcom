@@ -4,8 +4,11 @@ RfCom
 General purpose Arduino based 433MHz transmitter. Supports 433.42MHz and 433.92MHz transmitters on pin 5 and pin 6
 respectively (configured in "common.h").
 
+![Breadboard](rfcom.jpg)
+
 To get a 433.42MHz transmitter, just get a 433.92Mhz one that are more abundantly available and replace the oscillator
-with a 433.42MHz one (can be found on ebay).
+with a 433.42MHz one (can be found on ebay). You only need the 433.42MHz transmitter if you're going to be addressing
+433.42MHz devices (see list below).
 
 Protocols
 ---------
@@ -22,7 +25,8 @@ After that you can add devices. Each device will need to be given an id, a proto
 'Protocols' section of this document) and a configuration string. Use the "add_device" command to add them. Devices
 are stored in EEPROM and will update their configuration automatically if necessary (e.g. for rolling codes).
 
-Finally you can send commands to a device using the "send" command.
+Finally you can send commands to a device using the "send" command. For tips pairing, check out the documentation for
+[homebridge-rfcom](https://github.com/evinyatar/homebridge-rfcom).
 
 Example
 -------

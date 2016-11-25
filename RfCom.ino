@@ -189,6 +189,7 @@ void error(String text) {
         Serial.print(text);
         Serial.println("\"}");
     } else {
+        Serial.print("Error: ");
         Serial.println(text);
     }
 }
@@ -199,7 +200,6 @@ void success(String text) {
         Serial.print(text);
         Serial.println("\"}");
     } else {
-        Serial.print("Error: ");
         Serial.println(text);
     }
 }
