@@ -23,7 +23,19 @@ void loop() {
     if(Serial.available() > 0) {
         char chars[100];
         char* buffer = (char *) &chars;
-        int count = Serial.readBytesUntil('\n', buffer, sizeof(chars));
+        int count = 0;
+        while(true) {
+          char read = Serial.read();
+          if(read == 10 || read == 13) {
+            break;
+          } else {
+            buffer[count++] = read;
+          }
+        }
+
+        if(count == 0) {
+          return;
+        }
 
         buffer[count] = 0;
 
