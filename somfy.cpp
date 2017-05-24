@@ -34,7 +34,7 @@ byte frame[7];
 byte checksum;
 
 void BuildFrame(byte *frame, data_somfy *data, byte button) {
-    unsigned short code = data->rollingCode;
+    unsigned short code = data->rollingCode++;
     frame[0] = 0xA7; // Encryption key. Doesn't matter much
     frame[1] = button << 4;  // Which button did  you press? The 4 LSB will be the checksum
     frame[2] = code >> 8;    // Rolling code (big endian)
@@ -89,10 +89,6 @@ void BuildFrame(byte *frame, data_somfy *data, byte button) {
     }
     debug("Rolling Code  : " + String(code));
     */
-    
-    data->rollingCode = code++; //  We store the value of the rolling code in the
-    // EEPROM. It should take up to 2 adresses but the
-    // Arduino function takes care of it.
 }
 
 void SendCommand(byte *frame, byte sync) {
@@ -161,7 +157,7 @@ bool send_somfy(int address, char* arguments) {
     }
 
     // store updated rolling code into EEPROM
-    EEPROM.update(address + offsetof(struct data_somfy, rollingCode), data.rollingCode + 1);
+    EEPROM.put(address, data);
     return true;
 }
 
