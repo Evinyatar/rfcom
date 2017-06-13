@@ -7,4 +7,10 @@ set(${CMAKE_PROJECT_NAME}_BOARD micro)
 set(${CMAKE_PROJECT_NAME}_PORT /dev/ttyUSB0)
 
 set(${CMAKE_PROJECT_NAME}_SKETCH RfCom.ino)
-generate_arduino_firmware(${CMAKE_PROJECT_NAME})
+
+set(ALL_SRCS configstore.cpp dio.cpp somfy.cpp)
+
+generate_arduino_firmware(${CMAKE_PROJECT_NAME}
+        SRCS configstore.cpp dio.cpp somfy.cpp
+        HDRS configstore.h dio.h somfy.h
+        )

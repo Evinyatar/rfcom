@@ -31,10 +31,10 @@ bool nextDevice(DeviceSearch * context) {
     }
     int offset = context->nextOffset;
     context->index += 1;
-    context->device.protocolId = EEPROM.read(offset++);
+    context->device.protocolId = (ProtocolId) EEPROM.read(offset++);
     context->device.id = EEPROM.read(offset++);
     context->device.address = offset;
-    context->device.protoSpec = &PROTOCOLS[context->device.protocolId];
+    context->device.protoSpec = (Protocol*) &PROTOCOLS[context->device.protocolId];
     context->nextOffset = offset + context->device.protoSpec->dataSize;
     return true;
 }
@@ -47,7 +47,7 @@ void initialize() {
 Device* findDeviceForId(short idToFind) {
     DeviceSearch context;
     if(!startSearch(&context)) {
-        return -2;
+        return NULL;
     }
 
     while(nextDevice(&context)) {
